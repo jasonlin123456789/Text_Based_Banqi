@@ -1,0 +1,573 @@
+import java.util.ArrayList;
+import java.util.Scanner;
+public class Banqi
+{
+  public static void main(String[]args)
+  { 
+    Board chessBoard = new Board();
+    chessBoard.display();
+    System.out.println("Player One's Turn");
+    String player1 = firstRound(chessBoard);
+    String player2 = "";
+    if (player1.equals("black"))
+    {
+      player2 = "red";
+    }
+    else
+    {
+      player2 = "black";
+    }
+    for (int rep = 2; !chessBoard.win(); rep++)
+    { 
+      if (rep % 2 == 0)
+      {
+        System.out.println();
+        chessBoard.display();
+        System.out.println("Player Two's Turn");
+        executeMove(chessBoard, player2);
+      }
+      else 
+      {
+        System.out.println();
+        chessBoard.display();
+        System.out.println("Player One's Turn");
+        executeMove(chessBoard, player1);
+      }
+    }
+  }
+  public static String firstRound(Board chessBoard)
+  {
+    Scanner input = new Scanner(System.in);
+    String move = input.nextLine();
+    String method = "";
+    String color = "";
+    int pieceR = 0;
+    int pieceC = 0;
+    int desR = 0;
+    int desC = 0;
+    for (int rep = 0; rep < move.length() -1; rep++)
+    {
+      if (move.substring(rep, rep + 1).equals("("))
+      {
+        method = move.substring(0, rep);  
+        if (method.equals("flip"))
+        {
+          pieceR = Integer.parseInt( move.substring(rep + 1, rep + 2) );
+          pieceC = Integer.parseInt( move.substring(rep + 3, rep + 4) );
+          chessBoard.flip(pieceR, pieceC);
+          color = chessBoard.get(pieceR, pieceC).getColor();
+        }
+        else 
+        if (method.equals("move"))
+        {
+          pieceR = Integer.parseInt( move.substring(rep + 1, rep + 2) );
+          pieceC = Integer.parseInt( move.substring(rep + 3, rep + 4) );
+          desR = Integer.parseInt( move.substring(rep + 5, rep + 6) );
+          desC = Integer.parseInt( move.substring(rep + 7, rep + 8) );
+          chessBoard.move(pieceR, pieceC, desR, desC);
+          color = chessBoard.get(pieceR, pieceC).getColor();
+        }
+        else 
+        if (method.equals("capture"))
+        {
+          pieceR = Integer.parseInt( move.substring(rep + 1, rep + 2) );
+          pieceC = Integer.parseInt( move.substring(rep + 3, rep + 4) );
+          desR = Integer.parseInt( move.substring(rep + 5, rep + 6) );
+          desC = Integer.parseInt( move.substring(rep + 7, rep + 8) );
+          chessBoard.capture(pieceR, pieceC, desR, desC);
+          color = chessBoard.get(pieceR, pieceC).getColor();
+        }
+      }
+    }
+    return color;
+  }
+  public static void executeMove(Board chessBoard, String player)
+  {
+    Scanner input = new Scanner(System.in);
+    String move = input.nextLine();
+    String method = "";
+    int pieceR = 0;
+    int pieceC = 0;
+    int desR = 0;
+    int desC = 0;
+    for (int rep = 0; rep < move.length() -1; rep++)
+    {
+      if (move.substring(rep, rep + 1).equals("("))
+      {
+        method = move.substring(0, rep);  
+        if (method.equals("flip"))
+        {
+          pieceR = Integer.parseInt( move.substring(rep + 1, rep + 2) );
+          pieceC = Integer.parseInt( move.substring(rep + 3, rep + 4) );
+          if (chessBoard.get(pieceR, pieceC).getType().equals("blank"))
+          {
+            chessBoard.flip(pieceR, pieceC);
+          }
+        }
+        else 
+        if (method.equals("move"))
+        {
+          pieceR = Integer.parseInt( move.substring(rep + 1, rep + 2) );
+          pieceC = Integer.parseInt( move.substring(rep + 3, rep + 4) );
+          desR = Integer.parseInt( move.substring(rep + 5, rep + 6) );
+          desC = Integer.parseInt( move.substring(rep + 7, rep + 8) );
+          if (chessBoard.get(pieceR, pieceC).getColor().equals(player))
+          {
+            chessBoard.move(pieceR, pieceC, desR, desC);
+          }
+        }
+        else 
+        if (method.equals("capture"))
+        {
+          pieceR = Integer.parseInt( move.substring(rep + 1, rep + 2) );
+          pieceC = Integer.parseInt( move.substring(rep + 3, rep + 4) );
+          desR = Integer.parseInt( move.substring(rep + 5, rep + 6) );
+          desC = Integer.parseInt( move.substring(rep + 7, rep + 8) );
+          if (chessBoard.get(pieceR, pieceC).getColor().equals(player) && chessBoard.get(desR, desC).getColor() !=player)
+          {
+            chessBoard.capture(pieceR, pieceC, desR, desC);
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
+import java.util.ArrayList;
+public class Board
+{
+    private Piece[][] board;
+    private ArrayList<Piece> pieceList;
+    public Board()
+    {
+      board = new Piece[4][8];
+      pieceList = addPieceList();
+      for (int row = 0; row < board.length; row++)
+      {
+        for (int col = 0; col < board[0].length; col++)
+        {
+          board[row][col] = new Piece();
+        }
+      }
+    }
+    public static ArrayList<Piece> addPieceList()
+    {
+      Piece[] pieces = {new General("black"), new General("red"), new Guard("black"), new Guard("black"), new Guard("red"), new Guard("red"), new Elephant("black"), new Elephant("black"), new Elephant("red"), new Elephant("red"),
+                        new Chariot("black"), new Chariot("black"), new Chariot("red"), new Chariot("red"), new Horse("black"), new Horse("black"), new Horse("red"), new Horse("red"), new Cannon("black"), new Cannon("black"),
+                        new Cannon("red"), new Cannon("red"), new Pawn("black"), new Pawn("black"), new Pawn("black"), new Pawn("black"), new Pawn("black"), new Pawn("red"), new Pawn("red"), new Pawn("red"), new Pawn("red"),
+                        new Pawn("red")};
+      ArrayList<Piece> list = new ArrayList<Piece>();
+      for (Piece x : pieces)
+      {
+        list.add(x);
+      }
+      return list;
+    }
+    public Piece get(int r, int c)
+    {
+      return board[r][c];
+    }
+    public Piece randomPiece()
+    {
+      Piece tempPiece;
+      int loc = (int) (Math.random() * pieceList.size());
+      tempPiece = pieceList.get(loc);
+      pieceList.remove(loc);
+      return tempPiece;
+    }
+    public void remove(int r, int c)
+    {
+      board[r][c] = null;
+    }
+    public void addSpace(int r, int c)
+    {
+      board[r][c] = new Piece("","     ", -1);
+    }
+    public void flip(int r, int c)
+    {
+      if (board[r][c].getType().equals("blank"))
+      {
+        board[r][c] = randomPiece();
+      }
+    }
+    public void capture(int pieceR, int pieceC, int desR, int desC)
+    {
+      if (board[pieceR][pieceC].canCapture(this ,pieceR, pieceC, desR, desC))
+      {
+        board[desR][desC] = board[pieceR][pieceC];
+        remove(pieceR, pieceC);
+        addSpace(pieceR, pieceC);
+      }
+    }
+    public void move(int pieceR, int pieceC, int desR, int desC)
+    {
+      if (board[desR][desC].getType().equals("     "))
+      {
+        board[desR][desC] = board[pieceR][pieceC];   
+        remove(pieceR, pieceC);
+        addSpace(pieceR, pieceC);
+      }
+    }
+    public void display()
+    {
+      for (Piece[] r : board)
+      {
+        for (Piece c : r)
+        {
+          System.out.print(c.toString() + "  ");
+        }
+        System.out.println();
+        System.out.println();
+      }
+    }
+    public boolean win()
+    {
+      int blank = 0;
+      int red = 0;
+      int black = 0; 
+      for (Piece[] r : board)
+      {
+        for (Piece piece : r)
+        {
+          if (piece.getColor().equals("blank"))
+          {
+            blank++;
+          }
+          else
+          if (piece.getColor().equals("red"))
+          {
+            red++;  
+          }
+          else
+          if (piece.getColor().equals("black"))
+          {
+            black++;  
+          }
+        }
+      }
+      if ( (blank == 0 && red == 0) || (blank == 0 && black == 0))
+      {
+        return true;   
+      }
+      return false;
+    }
+}
+
+
+
+/**
+ * Write a description of class Banqi here.
+ * 
+ * @author (your name) 
+ * @version (a version number or a date)
+ */
+public class Piece
+{
+    private String color;
+    private String type;
+    private int priority;
+    public Piece()
+    {
+      color = "blank";
+      type = "blank";
+      priority = -1;
+    }
+    public Piece(String color, String type, int priority)
+    {
+      this.color = color;
+      this.type = type;
+      this.priority = priority;
+    }
+    public String getColor()
+    {
+      return color;
+    }
+    public String getType()
+    {
+      return type;
+    }
+    public int getPriority()
+    {
+      return priority;
+    }
+    public boolean canCapture(Board b, int pieceR, int pieceC, int desR, int desC)
+    {
+      if (getColor() != b.get(desR, desC).getColor())
+      {
+        if (getPriority() >= b.get(desR, desC).getPriority())
+        {
+          if ( (pieceR == desR && (pieceC - desC == 1 || desC - pieceC == 1)) || (pieceC == desC && (pieceR - desR == 1 || desR - pieceR == 1)) )
+          {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+    public String toString()
+    {
+        return "    " + getType() + "     ";
+    }
+}
+
+/**
+ * Write a description of class General here.
+ *
+ * @author (your name)
+ * @version (a version number or a date)
+ */
+public class General extends Piece
+{
+  private int priority;
+  public General(String color)
+  {
+    super(color, "general", 6);
+  }
+  public boolean canCapture(Board b, int pieceR, int pieceC, int desR, int desC)
+  {
+    if (this.getColor() != b.get(desR, desC).getColor())
+    {
+      if (b.get(desR, desC).getPriority() != 1)
+      {
+        return true;
+      }
+    } 
+    return false;
+  }
+  public String toString()
+  {
+    if (getColor().equals("black"))
+    {
+      return getColor() + "," + getType() + " ";
+    }
+    else 
+    {
+      return " " +getColor() + "," + getType() + "  ";
+    }
+  }
+}
+
+/**
+ * Write a description of class Guard here.
+ *
+ * @author (your name)
+ * @version (a version number or a date)
+ */
+public class Guard extends Piece
+{
+  private int priority;
+  public Guard(String color)
+  {
+    super(color, "guard", 5);
+  }
+  public String toString()
+  {
+    if (getColor().equals("black"))
+    {
+      return " " + getColor() + "," + getType() + "  ";
+    }
+    else 
+    {
+      return "  " + getColor() + "," + getType() + "   ";
+    }
+  }
+}
+
+/**
+ * Write a description of class Elephnat here.
+ *
+ * @author (your name)
+ * @version (a version number or a date)
+ */
+public class Elephant extends Piece
+{
+  private int priority;
+  public Elephant(String color)
+  {
+    super(color, "elephant", 4);
+  }
+  public String toString()
+  {
+    if (getColor().equals("black"))
+    {
+      return getColor() + "," + getType();
+    }
+    else 
+    {
+      return " " + getColor() + "," + getType() + " ";
+    }
+  }
+}
+
+/**
+ * Write a description of class Chariot here.
+ *
+ * @author (your name)
+ * @version (a version number or a date)
+ */
+public class Chariot extends Piece
+{
+  private int priority;
+  public Chariot(String color)
+  {
+    super(color, "chariot", 3);
+  }
+  public String toString()
+  {
+    if (getColor().equals("black"))
+    {
+      return getColor() + "," + getType() + " ";
+    }
+    else 
+    {
+      return " " + getColor() + "," + getType() + "  ";
+    }
+  }
+}
+
+/**
+ * Write a description of class Horse here.
+ *
+ * @author (your name)
+ * @version (a version number or a date)
+ */
+public class Horse extends Piece
+{
+  private int priority;
+  public Horse(String color)
+  {
+    super(color, "horse", 2);
+  }
+  public String toString()
+  {
+    if (getColor().equals("black"))
+    {
+      return " " + getColor() + "," + getType() + "  ";
+    }
+    else 
+    {
+      return "  " + getColor() + "," + getType() + "   ";
+    }
+  }
+}
+
+/**
+ * Write a description of class Cannon here.
+ *
+ * @author (your name)
+ * @version (a version number or a date)
+ */
+public class Cannon extends Piece
+{
+  private int priority;
+  public Cannon(String color)
+  {
+    super(color, "cannon", 0);
+  }
+  public boolean canCapture(Board b, int pieceR, int pieceC, int desR, int desC)
+  { 
+    int count = 0;
+    if (getColor() != b.get(desR, desC).getColor())
+    {
+      if (pieceR == desR)
+      {
+        if (desC > pieceC)
+        {
+          for (int col = pieceC + 1; col < desC; col++)
+          {
+            if (b.get(pieceR, col).getType() != "     ")
+            count++;
+          }
+        }
+        else 
+        if (desC < pieceC)
+        {
+          for (int col = desC + 1; col < pieceC; col++)
+          {
+            if (b.get(pieceR, col).getType() != "     ")
+            count++;
+          }
+        }
+      }
+      else 
+      if (pieceC == desC)
+      {
+        if (desR < pieceR)
+        {
+          for (int row = desR + 1; row < pieceR; row++)
+          {
+            if (b.get(row, pieceC).getType() != "     ")
+            count++;
+          }
+        }
+        else 
+        if (desR > pieceR)
+        {
+          for (int row = pieceR + 1; row < desR; row++)
+          {
+            if (b.get(row, pieceC).getType() != "     ")
+            count++;
+          }
+        }
+      }
+    }
+    if (count == 1)
+    {
+      return true;
+    }
+    return false;
+  }
+  public String toString()
+  {
+    if (getColor().equals("black"))
+    {
+      return " " + getColor() + "," + getType() + " ";
+    }
+    else 
+    {
+      return "  " + getColor() + "," + getType() + "  ";
+    }
+  }
+}
+
+
+/**
+ * Write a description of class Pawn here.
+ *
+ * @author (your name)
+ * @version (a version number or a date)
+ */
+public class Pawn extends Piece
+{
+  private int priority;
+  public Pawn(String color)
+  {
+    super(color, "pawn", 1);
+  }
+  public boolean canCapture(Board b, int pieceR, int pieceC, int desR, int desC)
+  {
+     if (getColor() != b.get(desR, desC).getColor())
+     {
+       if (b.get(desR, desC).getPriority() == 7 || b.get(desR, desC).getPriority() == 1)
+       {
+         return true;
+       }
+     }
+     return false;
+  }
+  public String toString()
+  {
+    if (getColor().equals("black"))
+    {
+      return "  " + getColor() + "," + getType() + "  ";
+    }
+    else 
+    {
+      return "   " + getColor() + "," + getType() + "   ";
+    }
+  }
+}
+
+
